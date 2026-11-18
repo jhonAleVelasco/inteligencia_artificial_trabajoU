@@ -11,7 +11,7 @@ Es un problema de **clasificación multiclase de imágenes**. El proyecto recorr
 ## Demostración
 
 - Aplicación desplegada: **[pendiente: URL de Streamlit Cloud]**
-- Repositorio: https://github.com/KeinerAstos/inteligencia_artificial_trabajoU
+- Repositorio: https://github.com/jhonAleVelasco/inteligencia_artificial_trabajoU
 
 ## Algoritmo utilizado
 
@@ -66,7 +66,7 @@ No se usan modelos pre-entrenados ni redes neuronales: el SVM se entrena desde c
 ### Pasos
 
 ```bash
-git clone https://github.com/KeinerAstos/inteligencia_artificial_trabajoU.git
+git clone https://github.com/jhonAleVelasco/inteligencia_artificial_trabajoU.git
 cd inteligencia_artificial_trabajoU
 python -m venv .venv
 # Windows: .venv\Scripts\activate    |    macOS/Linux: source .venv/bin/activate
