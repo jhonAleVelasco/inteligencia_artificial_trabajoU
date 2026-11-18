@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Streamlit y entornos locales
+.streamlit/secrets.toml
+.env
+
+# Sistema operativo y editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Archivos temporales
+*.tmp
+*.log
+
+# Datos procesados: se regeneran al ejecutar el notebook (archivo de ~60 MB)
+data/processed/*.csv
