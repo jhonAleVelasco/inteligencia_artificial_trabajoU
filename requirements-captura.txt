@@ -1,0 +1,2 @@
+# Solo para tomar las fotos del dataset en un computador con camara (no se usa en la nube)
+opencv-python==4.11.0.86
