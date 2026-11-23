@@ -26,3 +26,4 @@ Thumbs.db
 
 # Datos procesados: se regeneran al ejecutar el notebook (archivo de ~60 MB)
 data/processed/*.csv
+Commits_Keiner.zip
