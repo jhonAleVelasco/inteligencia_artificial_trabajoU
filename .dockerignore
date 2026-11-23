@@ -7,3 +7,5 @@ data/
 notebooks/
 docs/
 *.ipynb
+web/node_modules
+web/dist

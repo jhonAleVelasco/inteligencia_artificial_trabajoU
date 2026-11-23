@@ -1,0 +1,12 @@
+# Dependencias minimas para servir el panel web (api/main.py); no incluye Streamlit ni el notebook.
+# Las versiones de numpy, scikit-learn, scikit-image, pillow y joblib deben coincidir con requirements.txt
+# (el modelo .pkl solo se carga con la misma version de scikit-learn con la que se entreno).
+numpy==2.2.6
+scikit-learn==1.6.1
+scikit-image==0.25.2
+pillow==11.3.0
+joblib==1.5.1
+scipy>=1.11
+fastapi==0.115.12
+uvicorn==0.34.2
+python-multipart==0.0.20

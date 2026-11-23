@@ -1,2 +1,4 @@
 -r requirements.txt
+-r requirements-api.txt
 pytest==8.3.5
+httpx==0.28.1

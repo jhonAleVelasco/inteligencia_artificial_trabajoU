@@ -146,6 +146,25 @@ docker build -t frutacheck .
 docker run -p 8501:8501 frutacheck
 ```
 
+### Panel de calidad (React + API)
+
+Interfaz rediseñada para computador con dos secciones: **Revisar fruta** (una foto con una o varias frutas: caja y precio sobre cada una, tabla, medidor de riesgo y reglas de descuento que se ajustan al instante) y **Precios** (precio por unidad de cada fruta). Usa los mismos modelos; la app de Streamlit sigue disponible.
+
+```bash
+pip install -r requirements-api.txt
+cd web
+npm install
+npm run build
+cd ..
+python -m uvicorn api.main:app --port 8000
+```
+
+Se abre en http://localhost:8000. Para trabajar en el diseño con recarga en vivo, deje la API en el puerto 8000 y ejecute `npm run dev` dentro de `web/` (http://localhost:5173).
+
+Con Docker: `docker build -f Dockerfile.panel -t frutacheck-panel .` y `docker run -p 8000:8000 frutacheck-panel`.
+
+Pruebas: `pip install -r requirements-dev.txt`, luego `pytest` (modelo, detección y API) y `npm test` dentro de `web/` (reglas de descuento).
+
 ### Volver a entrenar el modelo
 
 1. **Opcional**, para regenerar `data/raw/` desde el dataset original: descargar `Original Image.zip` de https://data.mendeley.com/datasets/bdd69gyhv8/1, descomprimirlo y ejecutar:
@@ -173,7 +192,9 @@ inteligencia_artificial_trabajoU/
 ├── README.md                  Documentación principal
 ├── requirements.txt           Dependencias de la app y del notebook
 ├── requirements-captura.txt   Dependencia extra para tomar fotos (OpenCV)
-├── Dockerfile                 Imagen para ejecutar la app en un contenedor
+├── requirements-api.txt       Dependencias mínimas de la API del panel
+├── Dockerfile                 Imagen de la app Streamlit
+├── Dockerfile.panel           Imagen del panel React + API
 ├── .gitignore / .dockerignore
 ├── LICENSE
 ├── data/
@@ -198,6 +219,11 @@ inteligencia_artificial_trabajoU/
 ├── app/
 │   ├── app.py                 Aplicación Streamlit
 │   └── static/
+├── api/
+│   └── main.py                API FastAPI (/api/revisar) que también sirve el panel
+├── web/                       Panel de calidad (React + Vite + TypeScript)
+│   ├── src/                   Vistas, componentes, reglas de descuento y estilos
+│   └── public/ejemplos/       Fotos de ejemplo para probar sin subir nada
 └── docs/
     ├── captura_*.jpg          Capturas de la app
     └── presentacion.pdf       Presentación final
@@ -217,6 +243,8 @@ data/raw ──► preprocessing.py ──► notebook ──►    Usuario (cá
 ```
 
 ## Despliegue
+
+El panel React necesita un servicio que ejecute contenedores (por ejemplo Azure Container Apps o Render) con `Dockerfile.panel`; Streamlit Community Cloud no lo aloja. La app de Streamlit se despliega así:
 
 Servicio: **Streamlit Community Cloud**. En https://share.streamlit.io se conecta este repositorio y se eligen la rama `main`, el archivo principal `app/app.py` y Python 3.12. La plataforma instala `requirements.txt` y publica la URL. La cámara funciona desde el navegador del usuario, así que no hay que instalar nada. El modelo (unos 35 MB) carga en unos 4 segundos.
 
