@@ -63,7 +63,9 @@ def nombre_fruta(fruta):
 def nombre_clase(clase):
     """Texto legible de una clase: 'manzana_podrida' -> 'Manzana podrida'."""
     fruta, estado = interpretar_clase(clase)
-    return f"{nombre_fruta(fruta)} {'podrida' if estado == 'podrida' else 'fresca'}"
+    masculino = fruta == "banano"   # concuerda el genero: banano fresco / podrido, manzana fresca / podrida
+    palabra = ("podrido" if masculino else "podrida") if estado == "podrida" else ("fresco" if masculino else "fresca")
+    return f"{nombre_fruta(fruta)} {palabra}"
 
 
 def predecir(modelo, origen_imagen, umbral=0.5):
