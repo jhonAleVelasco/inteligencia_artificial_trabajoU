@@ -18,6 +18,9 @@ RAIZ = Path(__file__).resolve().parents[1]
 if str(RAIZ) not in sys.path:
     sys.path.insert(0, str(RAIZ))
 
+from src.detectar import (DESCUENTO_DEFECTO, PRECIO_UNIDAD_EJEMPLO, UMBRAL_DESCUENTO,  # noqa: E402
+                          UMBRAL_RETIRO, cargar_modelo_deteccion, detectar_frutas, dibujar_detecciones,
+                          precio_final, resumir_escena)
 from src.predict import (cargar_metadatos, cargar_modelo, interpretar_clase, nombre_clase,  # noqa: E402
                          nombre_fruta, predecir, resumir_lote)
 
@@ -30,6 +33,11 @@ st.set_page_config(page_title="FrutaCheck", page_icon="🍎", layout="centered")
 @st.cache_resource
 def obtener_modelo():
     return cargar_modelo()
+
+
+@st.cache_resource
+def obtener_modelo_deteccion():
+    return cargar_modelo_deteccion()
 
 
 @st.cache_data
@@ -71,7 +79,7 @@ with st.sidebar:
         st.write(f"F1 macro en prueba: **{m['f1_macro']:.1%}**")
     st.caption("Funciona mejor con una sola fruta, centrada, bien iluminada y ocupando buena parte de la foto.")
 
-tab_una, tab_lote = st.tabs(["Revisar una fruta", "Inspeccionar un lote"])
+tab_una, tab_lote, tab_varias = st.tabs(["Revisar una fruta", "Inspeccionar un lote", "Varias frutas por foto"])
 
 with tab_una:
     fuente = st.radio("Fuente de la imagen", ["Cámara", "Subir imagen"], horizontal=True)
@@ -158,3 +166,83 @@ with tab_lote:
                 st.error(f"Lote RECHAZADO: {texto} Devuelva o negocie el precio con el proveedor y "
                          "separe las podridas de inmediato.")
             st.dataframe(pd.DataFrame(filas), hide_index=True, use_container_width=True)
+
+ETIQUETA_ACCION = {"normal": "Vender", "retirar": "Retirar", "revisar": "Revisar a mano"}
+
+with tab_varias:
+    st.write("Ponga varias frutas **separadas entre sí** sobre un fondo **liso y claro** (una hoja, un mantel "
+             "o una mesa clara) y tome una sola foto. La app encuentra cada fruta, dice si está fresca o "
+             "podrida y aplica un **descuento** a las que tienen una probabilidad de estar podridas "
+             "igual o mayor al umbral.")
+    try:
+        modelo_det, modelo_propio = obtener_modelo_deteccion()
+    except Exception as error:
+        st.error(f"No se pudo cargar el modelo de detección: {error}")
+        modelo_det, modelo_propio = None, True
+    if modelo_det is not None and not modelo_propio:
+        st.warning("No se encontró models/modelo_deteccion.pkl; se usa el modelo de fotos completas, que "
+                   "es menos preciso con frutas recortadas. Ejecute `python -m src.entrenar_deteccion`.")
+
+    c1, c2, c3 = st.columns(3)
+    descuento = c1.slider("Descuento a aplicar", 5, 70, int(DESCUENTO_DEFECTO * 100), 5, format="%d%%") / 100
+    umbral_desc = c2.slider("Descuento desde (prob. de podrida)", 10, 90, int(UMBRAL_DESCUENTO * 100), 5,
+                            format="%d%%", help="Probabilidad de que la fruta esté podrida desde la cual "
+                            "se le aplica el descuento.") / 100
+    umbral_ret = c3.slider("Retirar desde (prob. de podrida)", 50, 100, int(UMBRAL_RETIRO * 100), 5,
+                           format="%d%%", help="Desde aquí la fruta no se vende: se retira del exhibidor."
+                           ) / 100
+    umbral_ret = max(umbral_ret, umbral_desc)
+    with st.expander("Precios por unidad (COP, valores de ejemplo editables)"):
+        columnas_precio = st.columns(4)
+        precios = {f: columnas_precio[i % 4].number_input(nombre_fruta(f), min_value=0, max_value=100_000,
+                                                          value=PRECIO_UNIDAD_EJEMPLO.get(f, 1000), step=100,
+                                                          key=f"precio_{f}")
+                   for i, f in enumerate(frutas)}
+
+    fuente_v = st.radio("Fuente de la imagen", ["Subir imagen", "Cámara"], horizontal=True, key="fuente_varias")
+    if fuente_v == "Cámara":
+        archivo_v = st.camera_input("Tome la foto con las frutas separadas", key="cam_varias")
+    else:
+        archivo_v = st.file_uploader("Suba una foto con varias frutas", type=TIPOS_IMAGEN, key="subir_varias")
+
+    if modelo_det is None:
+        pass
+    elif archivo_v is None:
+        st.info("Esperando una imagen.")
+    else:
+        try:
+            foto, detecciones = detectar_frutas(modelo_det, archivo_v, umbral=umbral, umbral_descuento=umbral_desc,
+                                                umbral_retiro=umbral_ret)
+        except ValueError as error:
+            st.error(f"No se pudo analizar la imagen: {error}")
+        else:
+            if not detecciones:
+                st.warning("No encontré frutas. Use un fondo liso y claro, deje espacio entre las frutas y "
+                           "tome la foto de frente, con buena luz.")
+            else:
+                st.image(dibujar_detecciones(foto, detecciones), use_container_width=True,
+                         caption="Verde: vender | Naranja: descuento | Rojo: retirar | Gris: revisar a mano")
+                r = resumir_escena(detecciones, precios, descuento)
+                m1, m2, m3, m4, m5 = st.columns(5)
+                m1.metric("Frutas", r["total"])
+                m2.metric("Con descuento", r["descuento"])
+                m3.metric("A retirar", r["retirar"])
+                m4.metric("Revisar a mano", r["revisar"])
+                m5.metric("Descuento total", pesos(r["descuento_total"]))
+                st.write(f"Valor de las frutas en venta: **{pesos(r['valor_con_descuento'])}** "
+                         f"(sin descuento serían {pesos(r['valor_sin_descuento'])}).")
+                filas = []
+                for i, d in enumerate(detecciones, 1):
+                    base = precios.get(d.resultado["fruta"], 0)
+                    final = precio_final(d, precios, descuento)
+                    accion = f"Descuento {descuento:.0%}" if d.accion == "descuento" else ETIQUETA_ACCION[d.accion]
+                    filas.append({"#": i, "Fruta": nombre_fruta(d.resultado["fruta"]),
+                                  "Estado": d.resultado["estado"].capitalize(),
+                                  "Prob. podrida": f"{d.resultado['prob_podrida']:.0%}",
+                                  "Confianza": f"{d.resultado['probabilidad']:.0%}", "Acción": accion,
+                                  "Precio": pesos(base), "Precio final": pesos(final) if final is not None else "-"})
+                st.dataframe(pd.DataFrame(filas), hide_index=True, use_container_width=True)
+                with st.expander("Ver el recorte que analizó el modelo en cada fruta"):
+                    cols = st.columns(min(len(detecciones), 4))
+                    for i, d in enumerate(detecciones):
+                        cols[i % len(cols)].image(d.recorte, caption=f"#{i + 1}", use_container_width=True)

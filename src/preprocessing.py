@@ -25,9 +25,9 @@ EXTENSIONES = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
 
 
 def cargar_imagen(origen):
-    """Abre una imagen desde una ruta o un archivo en memoria y la devuelve en RGB."""
+    """Abre una imagen desde una ruta, un archivo en memoria o un objeto PIL y la devuelve en RGB."""
     try:
-        imagen = Image.open(origen)
+        imagen = origen if isinstance(origen, Image.Image) else Image.open(origen)
         imagen = ImageOps.exif_transpose(imagen)
         return imagen.convert("RGB")
     except Exception as error:  # archivo corrupto o formato no soportado

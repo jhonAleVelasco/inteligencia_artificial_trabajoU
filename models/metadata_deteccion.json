@@ -1,0 +1,59 @@
+{
+  "proyecto": "FrutaCheck: modelo para deteccion de varias frutas por foto",
+  "algoritmo": "Support Vector Machine (sklearn.svm.SVC), entrenado con recortes de src/detectar.py",
+  "fecha_entrenamiento": "2026-11-23T09:24:22",
+  "clases": [
+    "azufaifa_fresca",
+    "azufaifa_podrida",
+    "banano_fresco",
+    "banano_podrido",
+    "fresa_fresca",
+    "fresa_podrida",
+    "granada_fresca",
+    "granada_podrida",
+    "guayaba_fresca",
+    "guayaba_podrida",
+    "manzana_fresca",
+    "manzana_podrida",
+    "naranja_fresca",
+    "naranja_podrida",
+    "uva_fresca",
+    "uva_podrida"
+  ],
+  "hiperparametros": {
+    "kernel": "rbf",
+    "C": 100,
+    "gamma": 0.0001
+  },
+  "recortes": {
+    "entrenamiento": 5864,
+    "prueba": 728,
+    "area_minima": 0.04,
+    "max_por_foto": 4
+  },
+  "metricas_recortes_prueba": {
+    "accuracy": 0.8008,
+    "precision_macro": 0.8101,
+    "recall_macro": 0.8028,
+    "f1_macro": 0.8033,
+    "accuracy_estado": 0.8956,
+    "accuracy_fruta": 0.8571,
+    "recall_podrida": 0.9231,
+    "precision_podrida": 0.875
+  },
+  "metricas_modelo_original_en_los_mismos_recortes": {
+    "accuracy": 0.1291,
+    "precision_macro": 0.1773,
+    "recall_macro": 0.141,
+    "f1_macro": 0.082,
+    "accuracy_estado": 0.5096,
+    "accuracy_fruta": 0.2321,
+    "recall_podrida": 0.978,
+    "precision_podrida": 0.505
+  },
+  "n_caracteristicas": 1806,
+  "versiones": {
+    "scikit-learn": "1.6.1",
+    "numpy": "2.2.6"
+  }
+}
