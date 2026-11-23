@@ -71,7 +71,7 @@ Con el umbral por defecto (0,60), la app responde sola en el 81 % de las fotos c
   - **LBP uniforme** (10 valores) [4]: textura de la cáscara, sensible a manchas, arrugas y moho.
   - **HOG** (1.764 valores) [5]: dirección de los bordes en cada zona, es decir, la forma de la fruta.
 
-**No se usan modelos pre-entrenados ni redes neuronales:** las características se calculan con fórmulas fijas y el SVM se entrena desde cero.
+**No se usan modelos pre-entrenados ni redes neuronales:** las características se calculan con fórmulas fijas y el SVM se entrena desde cero con scikit-learn [6].
 
 ## Instalación local
 
@@ -182,11 +182,17 @@ Servicio: **Streamlit Community Cloud**. En https://share.streamlit.io se conect
 
 ## Referencias
 
-[1] N. Sultana, M. Jahan y M. S. Uddin, "Fresh and Rotten Fruits Dataset for Machine-Based Evaluation of Fruit Quality," Mendeley Data, v1, 2022, doi: 10.17632/bdd69gyhv8.1.
-[2] Departamento Nacional de Planeación (DNP), "Pérdida y desperdicio de alimentos en Colombia," Bogotá, 2016.
-[3] C. Cortes y V. Vapnik, "Support-vector networks," *Machine Learning*, vol. 20, no. 3, pp. 273–297, 1995.
-[4] T. Ojala, M. Pietikäinen y T. Mäenpää, "Multiresolution gray-scale and rotation invariant texture classification with local binary patterns," *IEEE Trans. Pattern Anal. Mach. Intell.*, vol. 24, no. 7, pp. 971–987, 2002.
-[5] N. Dalal y B. Triggs, "Histograms of oriented gradients for human detection," en *Proc. IEEE CVPR*, 2005, pp. 886–893.
+[1] N. Sultana, M. Jahan, and M. S. Uddin, "Fresh and rotten fruits dataset for machine-based evaluation of fruit quality," Mendeley Data, V1, Apr. 2022, doi: 10.17632/bdd69gyhv8.1.
+
+[2] Departamento Nacional de Planeación, "Pérdida y desperdicio de alimentos en Colombia: Estudio de la Dirección de Seguimiento y Evaluación de Políticas Públicas," DNP, Bogotá, Colombia, 2016.
+
+[3] C. Cortes and V. Vapnik, "Support-vector networks," *Mach. Learn.*, vol. 20, no. 3, pp. 273–297, Sep. 1995, doi: 10.1007/BF00994018.
+
+[4] T. Ojala, M. Pietikäinen, and T. Mäenpää, "Multiresolution gray-scale and rotation invariant texture classification with local binary patterns," *IEEE Trans. Pattern Anal. Mach. Intell.*, vol. 24, no. 7, pp. 971–987, Jul. 2002, doi: 10.1109/TPAMI.2002.1017623.
+
+[5] N. Dalal and B. Triggs, "Histograms of oriented gradients for human detection," in *Proc. IEEE Comput. Soc. Conf. Comput. Vis. Pattern Recognit. (CVPR)*, San Diego, CA, USA, 2005, pp. 886–893, doi: 10.1109/CVPR.2005.177.
+
+[6] F. Pedregosa *et al.*, "Scikit-learn: Machine learning in Python," *J. Mach. Learn. Res.*, vol. 12, pp. 2825–2830, 2011.
 
 ## Autores
 
