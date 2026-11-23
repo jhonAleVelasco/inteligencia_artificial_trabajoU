@@ -7,3 +7,6 @@ joblib==1.5.1
 streamlit==1.45.1
 matplotlib==3.10.3
 seaborn==0.13.2
+
+# Usado por src/detectar.py (ya viene con scikit-image; se declara por claridad)
+scipy>=1.11

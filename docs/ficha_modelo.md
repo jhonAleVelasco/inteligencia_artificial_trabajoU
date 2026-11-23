@@ -51,3 +51,19 @@ Con el umbral por defecto de la app (0,60), el modelo responde en el 81 % de las
 ## Mantenimiento
 
 Para adaptar el modelo a una tienda: tomar fotos propias con `src/capturar_fotos.py --clase <fruta>_<estado>`, volver a ejecutar el notebook y publicar el nuevo `modelo.pkl`.
+
+## Modelo para varias frutas por foto
+
+| Campo | Valor |
+|---|---|
+| Archivo | `models/modelo_deteccion.pkl` (unos 40 MB); detalles en `models/metadata_deteccion.json` |
+| Algoritmo | El mismo pipeline `StandardScaler` → `SVC` (RBF, C = 100, gamma = 0,0001), entrenado con **recortes** de cada fruta |
+| Entrada | Foto con varias frutas separadas sobre un fondo liso y claro; `src/detectar.py` segmenta y recorta cada fruta |
+| Entrenamiento | `python -m src.entrenar_deteccion`: 5.864 ejemplos (recortes y sus espejos) de las 2.560 fotos de entrenamiento |
+| Prueba | 728 recortes de las 633 fotos de prueba, con la misma división del notebook |
+
+Desempeño en los recortes de prueba: accuracy 80,1 % (16 clases), F1 macro 80,3 %, fresca vs. podrida 89,6 %, fruta correcta 85,7 %, recall de podridas 92,3 %. El modelo original da 12,9 % sobre esos mismos recortes, por eso se entrena aparte.
+
+La decisión de descuento usa la **probabilidad de estar podrida** (descuento desde 40 %, retiro desde 80 %). No es el porcentaje de la fruta que está dañada.
+
+**Limitaciones adicionales:** necesita fondo liso y claro y frutas separadas; no se validó con fotos reales de varias frutas (las pruebas usan escenas armadas con fotos de prueba, ver `src/evaluar_deteccion.py`); no separa bien frutas muy montadas ni racimos.

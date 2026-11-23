@@ -1,6 +1,6 @@
 # FrutaCheck: control de calidad de fruta con SVM
 
-Aplicación web que, a partir de una foto, dice **qué fruta es y si está fresca o podrida**, recomienda qué hacer con ella y permite **inspeccionar un lote completo** para decidir si se recibe del proveedor. Usa un modelo **Support Vector Machine (SVM)** entrenado desde cero con fotografías reales. Proyecto de la Actividad 3 de Inteligencia Artificial I, Fundación Universitaria Los Libertadores (Grupo 1).
+Aplicación web que, a partir de una foto, dice **qué fruta es y si está fresca o podrida**, recomienda qué hacer con ella, permite **inspeccionar un lote completo** para decidir si se recibe del proveedor y **detecta varias frutas en una sola foto** para aplicar un descuento a las que están podridas. Usa un modelo **Support Vector Machine (SVM)** entrenado desde cero con fotografías reales. Proyecto de la Actividad 3 de Inteligencia Artificial I, Fundación Universitaria Los Libertadores (Grupo 1).
 
 ## Demostración
 
@@ -28,6 +28,7 @@ FrutaCheck ataca ambos puntos con la cámara del celular o del computador: detec
 
 - **Revisar una fruta:** foto con la cámara o imagen subida. La app muestra la fruta, si está **fresca o podrida**, la confianza, la probabilidad de que esté podrida y una recomendación (vender o retirar del exhibidor).
 - **Inspeccionar un lote:** se suben hasta 60 fotos (una fruta por foto) y se indican el **precio por kg**, el **peso promedio por fruta** y el **máximo de podridas aceptable**. La app cuenta frescas y podridas, estima la **pérdida en pesos** y dice si el lote se **acepta o se rechaza**.
+- **Varias frutas por foto:** se ponen varias frutas **separadas** sobre un fondo **liso y claro** y se toma una sola foto. La app encuentra cada fruta, la marca con una caja de color, dice si está fresca o podrida y decide: **vender**, **descuento** (desde 40 % de probabilidad de estar podrida), **retirar** (desde 80 %) o **revisar a mano**. Muestra el precio con y sin descuento de cada fruta y el total.
 - **Umbral de confianza ajustable:** si el modelo no está seguro, la app no adivina: pide revisar la fruta a mano.
 - **Manejo de errores:** archivos dañados o que no son imágenes, imágenes muy pequeñas y modelo ausente se informan con un mensaje claro, sin que la app se caiga.
 
@@ -60,6 +61,45 @@ FrutaCheck ataca ambos puntos con la cámara del celular o del computador: detec
 | Fruta correcta (sin importar el estado) | 89,3 % |
 
 Con el umbral por defecto (0,60), la app responde sola en el 81 % de las fotos con 95,3 % de acierto, y el resto lo manda a revisión manual. Las clases más difíciles son manzana podrida (F1 0,73) y granada podrida (0,76), que suelen tener una pudrición incipiente.
+
+## Detección de varias frutas y descuento
+
+El modelo de arriba clasifica **una fruta por foto**. Para una foto con varias frutas separadas sobre un fondo claro se agregó un paso previo (`src/detectar.py`), también sin redes neuronales:
+
+1. **Fondo:** se estima su color con el borde de la foto (mediana en CIELAB). Todo lo que se aleja de ese color es fruta (umbral de Otsu). Las sombras casi no cambian el tono, así que pesan menos que el color.
+2. **Una mancha = una fruta:** morfología y componentes conexos. Si una mancha parece dos frutas pegadas, se separa con *watershed* solo cuando entre ellas hay un cuello claro, para no partir un banano curvo.
+3. **Recorte:** cada fruta se recorta en un cuadrado con margen y todo lo que no es la fruta (fondo y vecinas) se pinta de gris neutro, de modo que el modelo vea solo la fruta.
+4. **Clasificación:** cada recorte pasa por un SVM con las mismas 1.806 características (`models/modelo_deteccion.pkl`).
+5. **Decisión por fruta** con la *probabilidad de estar podrida* (la suma de las probabilidades de las 8 clases podridas):
+
+| Probabilidad de podrida | Acción |
+|---|---|
+| menor a 40 % | Vender a precio normal |
+| 40 % o más | **Descuento** (30 % por defecto, ajustable) |
+| 80 % o más | **Retirar** del exhibidor |
+| la clase más probable no supera la confianza mínima | **Revisar a mano** (salvo que ya sea de las que se retiran, que no necesitan saber qué fruta es) |
+
+Los umbrales y el descuento se ajustan en la app. Ojo: es la **probabilidad que da el modelo**, no el porcentaje de la superficie de la fruta que está dañada.
+
+**Por qué un segundo modelo.** `modelo.pkl` se entrenó con fotos completas, donde la fruta llena el cuadro. Con recortes pierde casi toda su precisión (13 % de acierto en 16 clases sobre los recortes de prueba). Por eso `src/entrenar_deteccion.py` entrena el mismo SVM (kernel RBF, C = 100, gamma = 0,0001) con los recortes que produce el detector, usando **la misma división entrenamiento/prueba** del notebook: ningún recorte de prueba viene de una foto vista al entrenar. El modelo de la pestaña "Revisar una fruta" no cambia.
+
+**Resultados**
+
+| Evaluación | 16 clases | Fruta | Fresca vs. podrida |
+|---|---|---|---|
+| Recortes de las fotos de prueba (728 recortes) | 80,1 % | 85,7 % | 89,6 % |
+| Escenas armadas con varias frutas (4 series de 40 escenas) | 74-87 % | 77-93 % | 90-92 % |
+
+En las escenas armadas no hubo detecciones falsas ni frutas perdidas; las podridas que pasaron como normales fueron entre 0 y 2 por serie (de unas 90), y las frescas marcadas por error con descuento o retiro, entre 1 y 4 (de unas 85). Con ellas, el modelo original da 14 % en 16 clases y marca como podrida casi todo.
+
+**Cómo se evaluó y qué no demuestra.** No hay fotos reales con varias frutas etiquetadas, así que `src/evaluar_deteccion.py` fabrica escenas con fotos del conjunto de prueba: recorta cada fruta con GrabCut (un algoritmo distinto al del detector) y las pega separadas sobre un fondo claro liso con sombra suave. Es una aproximación: los bordes recortados y el fondo perfectamente liso no son los de una foto real. **Hay que validar con fotos propias** antes de dar estas cifras como definitivas.
+
+```bash
+pip install -r requirements-captura.txt    # trae opencv, que usa la evaluación
+python -m src.evaluar_deteccion --escenas 40 --guardar escenas_prueba
+```
+
+**Para que funcione bien:** fondo liso y claro (no hace falta que sea blanco), frutas separadas entre sí, foto de frente y con buena luz. Puede fallar con fondos con dibujos, frutas del mismo color del fondo, sombras muy duras, frutas que se montan unas sobre otras o racimos (una uva suelta y un racimo se cuentan distinto).
 
 ## Dataset
 
@@ -117,6 +157,7 @@ docker run -p 8501:8501 frutacheck
    python src/capturar_fotos.py --clase manzana_podrida --n 120
    ```
 3. Abrir `notebooks/01_training.ipynb` y ejecutarlo completo (unos 12 minutos). Al final genera `models/modelo.pkl` y `models/metadata.json`.
+4. Para el modelo de varias frutas por foto (unos 5 minutos), desde la raíz: `python -m src.entrenar_deteccion`. Genera `models/modelo_deteccion.pkl` y `models/metadata_deteccion.json`. Con `--buscar` también busca C y gamma por validación cruzada.
 
 ## Uso
 
@@ -142,11 +183,16 @@ inteligencia_artificial_trabajoU/
 │   └── 01_training.ipynb      EDA, preprocesamiento, entrenamiento, evaluación y serialización
 ├── models/
 │   ├── modelo.pkl             Pipeline entrenado (StandardScaler + SVC)
-│   └── metadata.json          Clases, hiperparámetros, métricas y versiones
+│   ├── metadata.json          Clases, hiperparámetros, métricas y versiones
+│   ├── modelo_deteccion.pkl   Mismo SVM entrenado con recortes (varias frutas por foto)
+│   └── metadata_deteccion.json
 ├── src/
 │   ├── __init__.py
 │   ├── preprocessing.py       Carga de imágenes y extracción de características
 │   ├── predict.py             Carga del modelo, predicción y resumen de lote
+│   ├── detectar.py            Varias frutas por foto: segmentación, recortes, descuento
+│   ├── entrenar_deteccion.py  Entrena models/modelo_deteccion.pkl con recortes
+│   ├── evaluar_deteccion.py   Evalúa la detección con escenas armadas
 │   ├── preparar_datos.py      Convierte el dataset original a data/raw
 │   └── capturar_fotos.py      Captura de fotos propias con la cámara
 ├── app/
@@ -177,8 +223,8 @@ Servicio: **Streamlit Community Cloud**. En https://share.streamlit.io se conect
 ## Limitaciones y trabajo futuro
 
 - El modelo solo conoce estas 8 frutas; otra fruta siempre se parecerá a alguna. Por eso la app usa un umbral de confianza.
-- Las fotos del dataset vienen de fruterías de Bangladés. La luz y el fondo de otra tienda pueden bajar el desempeño, y una foto con varias frutas mezcladas confunde al modelo.
-- **Trabajo futuro:** fotos propias de tiendas colombianas y frutas locales (mango, lulo, mora, aguacate); un nivel intermedio "madura, vender pronto"; detección de varias frutas en una misma foto; historial de lotes por proveedor.
+- Las fotos del dataset vienen de fruterías de Bangladés. La luz y el fondo de otra tienda pueden bajar el desempeño, y en las pestañas de una sola fruta una foto con varias frutas mezcladas confunde al modelo (para eso está "Varias frutas por foto", con frutas separadas y fondo claro).
+- **Trabajo futuro:** fotos propias de tiendas colombianas y frutas locales (mango, lulo, mora, aguacate); un nivel intermedio "madura, vender pronto"; detección de frutas montadas unas sobre otras o en racimos, y validación con fotos reales de tiendas; porcentaje de superficie dañada por fruta; historial de lotes por proveedor.
 
 ## Referencias
 
