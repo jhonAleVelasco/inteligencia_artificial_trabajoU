@@ -4,7 +4,7 @@ Aplicación web que, a partir de una foto, dice **qué fruta es y si está fresc
 
 ## Demostración
 
-- Aplicación desplegada: **[pendiente: URL de Streamlit Cloud]**
+- Aplicación desplegada: https://frutacheck-grupo1.streamlit.app
 - Repositorio: https://github.com/jhonAleVelasco/inteligencia_artificial_trabajoU
 
 | Revisar una fruta | Inspeccionar un lote |
