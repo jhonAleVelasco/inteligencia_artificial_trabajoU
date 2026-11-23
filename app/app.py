@@ -229,8 +229,10 @@ with tab_varias:
                 m3.metric("A retirar", r["retirar"])
                 m4.metric("Revisar a mano", r["revisar"])
                 m5.metric("Descuento total", pesos(r["descuento_total"]))
-                st.write(f"Valor de las frutas en venta: **{pesos(r['valor_con_descuento'])}** "
-                         f"(sin descuento serían {pesos(r['valor_sin_descuento'])}).")
+                # "\$": en markdown de Streamlit dos signos $ se leen como una formula LaTeX
+                con_desc = pesos(r["valor_con_descuento"]).replace("$", "\\$")
+                sin_desc = pesos(r["valor_sin_descuento"]).replace("$", "\\$")
+                st.write(f"Valor de las frutas en venta: **{con_desc}** (sin descuento serían {sin_desc}).")
                 filas = []
                 for i, d in enumerate(detecciones, 1):
                     base = precios.get(d.resultado["fruta"], 0)
