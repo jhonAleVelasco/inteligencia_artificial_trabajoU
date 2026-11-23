@@ -1,0 +1,54 @@
+{
+  "proyecto": "FrutaCheck: control de calidad de fruta (fresca o podrida)",
+  "algoritmo": "Support Vector Machine (sklearn.svm.SVC)",
+  "fecha_entrenamiento": "2026-11-22T20:55:58",
+  "dataset": "Fresh and Rotten Fruits Dataset (Sultana, Jahan y Uddin, 2022), Mendeley Data, CC BY 4.0",
+  "clases": [
+    "azufaifa_fresca",
+    "azufaifa_podrida",
+    "banano_fresco",
+    "banano_podrido",
+    "fresa_fresca",
+    "fresa_podrida",
+    "granada_fresca",
+    "granada_podrida",
+    "guayaba_fresca",
+    "guayaba_podrida",
+    "manzana_fresca",
+    "manzana_podrida",
+    "naranja_fresca",
+    "naranja_podrida",
+    "uva_fresca",
+    "uva_podrida"
+  ],
+  "mejores_hiperparametros": {
+    "C": 100,
+    "class_weight": null,
+    "gamma": 0.0001,
+    "kernel": "rbf"
+  },
+  "f1_macro_validacion_cruzada": 0.8262,
+  "metricas": {
+    "accuracy": 0.8657,
+    "precision_macro": 0.8649,
+    "recall_macro": 0.8638,
+    "f1_macro": 0.8636
+  },
+  "metricas_estado": {
+    "accuracy_estado": 0.9336,
+    "recall_podrida": 0.9209,
+    "precision_podrida": 0.9448,
+    "accuracy_fruta": 0.8926
+  },
+  "accuracy_clasificador_base": 0.0521,
+  "imagenes": {
+    "total": 3193,
+    "entrenamiento": 2560,
+    "prueba": 633
+  },
+  "n_caracteristicas": 1806,
+  "versiones": {
+    "scikit-learn": "1.6.1",
+    "numpy": "2.2.6"
+  }
+}
